@@ -11,6 +11,7 @@ public sealed class GameManager : MonoBehaviour
     public ResourceManager resourceManager;
     public GridManager gridManager;
     public Launcher launcher;
+    public GameObject Compressor;
     
     void Start () {
         if (instance == null) {
@@ -32,9 +33,9 @@ public sealed class GameManager : MonoBehaviour
 
     public void OnTriggered(Ball ball)
     {
-        
         gridManager.AddBall(ball);
         launcher.Reload();
+        Compressor.transform.localPosition = new Vector3(Compressor.transform.position.x,Compressor.transform.position.y - 1f,0);
     }
     
 }

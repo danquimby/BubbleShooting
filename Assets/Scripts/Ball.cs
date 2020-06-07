@@ -11,8 +11,7 @@ public class Ball : MonoBehaviour
     public Position BallPosition;
     public float speed = 10;
     public float moveSpeed = 2;
-    public int BallId { get; private set; }
-    public bool isHit = false;
+    public int BallId;
     //TODO !!
     private bool click = false;
 
@@ -62,7 +61,6 @@ public class Ball : MonoBehaviour
     public void Kill()
     {
         //TODO animation
-        onTriggeredEvent.RemoveListener(GameManager.instance.OnTriggered);
         Destroy(gameObject);
     }
 
@@ -73,6 +71,7 @@ public class Ball : MonoBehaviour
 
     public void Launching()
     {
+        gameObject.tag = "hits";
         _rigidbody2D.velocity = transform.up * speed;
     }
 
@@ -96,14 +95,12 @@ public class Ball : MonoBehaviour
     {
         while (Vector3.Distance(transform.position, position) > 0.001f)
         {
-            //todo union speed params
             float step =  moveSpeed * Time.deltaTime;
             transform.position = Vector3.MoveTowards(transform.position, position, step);
             yield return null;
         }
         transform.position = position;
         finished?.Invoke();
-//        Debug.LogError("position " + transform.position);
         yield return null;
     }
 
@@ -111,25 +108,22 @@ public class Ball : MonoBehaviour
     {
         if (collider != null)
         {
-            Ball ball = collider.gameObject.CastToBall();
-            if (!isHit && ball != null && ball.isTrigger)
+            if (gameObject.tag == "hits" || gameObject.tag == "upper")
             {
-                Debug.LogError("OnTriggered ");
-                isHit = true;
-                Collider = false;
+                // todo fast kick 
+                //Ball ball = collider.gameObject.CastToBall();
                 isTrigger = true;
                 Stop();
+                gameObject.tag = "bubble";
                 onTriggeredEvent?.Invoke(this);
-                Collider = true;
+                onTriggeredEvent.RemoveListener(GameManager.instance.OnTriggered);
             }
         }
     }
 
     public static Ball Clone(Vector3 position, int index = -1, Transform parent = null)
     {
-        Ball _ball = GameManager.instance.resourceManager.Get(index);
-        Ball ball = _ball.gameObject.CloneBall(position, parent);
-        return ball;
+        return GameManager.instance.resourceManager.Get(index).gameObject.CloneBall(position, parent);
     }
 }
 
@@ -146,10 +140,7 @@ public static class MyExtensions
         GameObject _object = GameObject.Instantiate(ball, position, Quaternion.identity);
         if (_object == null)
             return null;
-        if (parent == null)
-            _object.transform.SetParent(GameManager.instance.spawnFolder);
-        else
-            _object.transform.SetParent(parent);
+        _object.transform.SetParent(parent == null ? GameManager.instance.spawnFolder : parent);
         return _object.GetComponent<Ball>();
     }
 }

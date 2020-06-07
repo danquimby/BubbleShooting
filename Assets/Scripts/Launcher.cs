@@ -14,19 +14,10 @@ public class Launcher : MonoBehaviour
     {
         loaded = transformLoadBall.position;
         next = transformNextBall.position;
-        loadedBall = Ball.Clone(loaded);
-        nextBall = Ball.Clone(next);
+        loadedBall = Ball.Clone(loaded, 1);
+        nextBall = Ball.Clone(next, 1);
         nextBall.gameObject.SetActive(true);
         loadedBall.gameObject.SetActive(true);
-    }
-    public void Load()
-    {
-        
-    }
-
-    public void FIre()
-    {
-        
     }
 
     public void Reload()

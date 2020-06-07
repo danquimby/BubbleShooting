@@ -99,7 +99,7 @@ MonoBehaviour:
     row: 0
   speed: 7
   moveSpeed: 2
-  isHit: 0
+  BallId: 0
   onTriggeredEvent:
     m_PersistentCalls:
       m_Calls: []

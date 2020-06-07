@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - bubble
+  - GameOver
+  - hits
+  - upper
   layers:
   - Default
   - TransparentFX
