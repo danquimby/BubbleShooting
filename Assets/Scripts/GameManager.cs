@@ -34,6 +34,7 @@ public sealed class GameManager : MonoBehaviour
     {
         
         gridManager.AddBall(ball);
+        launcher.Reload();
     }
     
 }

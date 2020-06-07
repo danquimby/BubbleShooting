@@ -27,13 +27,27 @@ public class Ball : MonoBehaviour
         }
     }
 
+    public bool Collider
+    {
+        get
+        {
+            return _collider.enabled;
+        }
+        set
+        {
+            if (_collider == null)
+                _collider = GetComponent<CircleCollider2D>();
+            _collider.enabled = value; 
+        }
+    }
+
     public TriggeredEvent onTriggeredEvent;
 
     void Start()
     {
         log = UnityLogProvider.get(this.GetType().Name);
         if (_collider == null)
-        _collider = GetComponent<CircleCollider2D>();
+            _collider = GetComponent<CircleCollider2D>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
         onTriggeredEvent.AddListener(GameManager.instance.OnTriggered);
 
@@ -62,11 +76,20 @@ public class Ball : MonoBehaviour
         _rigidbody2D.velocity = transform.up * speed;
     }
 
-    public void MoveTo(Vector3 position)
+    public void MoveTo(Vector3 position, float speed = -1, Action finish = null)
     {
+        float tmpSpeed = -1;
+        if (speed >= 0)
+        {
+            tmpSpeed = moveSpeed;
+            moveSpeed = speed;
+        }
+            
         StartCoroutine(MoveProcess(position, () =>
         {
-            Debug.Log("finished");
+            if (tmpSpeed >= 0)
+                moveSpeed = tmpSpeed;
+            finish?.Invoke();
         }));
     }
     IEnumerator MoveProcess(Vector3 position, Action finished)
@@ -93,10 +116,11 @@ public class Ball : MonoBehaviour
             {
                 Debug.LogError("OnTriggered ");
                 isHit = true;
-                _collider.enabled = false;
+                Collider = false;
+                isTrigger = true;
                 Stop();
-                isTrigger = false;
                 onTriggeredEvent?.Invoke(this);
+                Collider = true;
             }
         }
     }

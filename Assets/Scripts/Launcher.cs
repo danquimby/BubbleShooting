@@ -9,11 +9,13 @@ public class Launcher : MonoBehaviour
     [SerializeField] private Ball nextBall;
     [SerializeField] private Transform transformLoadBall;
     [SerializeField] private Transform transformNextBall;
-
+    private Vector3 next, loaded;
     public void Initialization()
     {
-        loadedBall = Ball.Clone(transformLoadBall.position);
-        nextBall = Ball.Clone(transformNextBall.position);
+        loaded = transformLoadBall.position;
+        next = transformNextBall.position;
+        loadedBall = Ball.Clone(loaded);
+        nextBall = Ball.Clone(next);
         nextBall.gameObject.SetActive(true);
         loadedBall.gameObject.SetActive(true);
     }
@@ -25,6 +27,19 @@ public class Launcher : MonoBehaviour
     public void FIre()
     {
         
+    }
+
+    public void Reload()
+    {
+        loadedBall = nextBall;
+        loadedBall.Collider = false;
+        loadedBall.MoveTo(loaded, 10, () =>
+        {
+            nextBall = Ball.Clone(next);
+            nextBall.gameObject.SetActive(true);
+            loadedBall.Collider = true;
+            isReady = false;
+        });
     }
     void Update()
     {
