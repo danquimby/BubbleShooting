@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using UnityEngine;
 
 public sealed class GameManager : MonoBehaviour
 {
@@ -34,8 +36,28 @@ public sealed class GameManager : MonoBehaviour
     public void OnTriggered(Ball ball)
     {
         gridManager.AddBall(ball);
-        launcher.Reload();
-        Compressor.transform.localPosition = new Vector3(Compressor.transform.position.x,Compressor.transform.position.y - 1f,0);
+        ball.transform.SetParent(spawnFolder);
+        //launcher.Reload();
     }
+
+    public void CompressorStart()
+    {
+        StartCoroutine(MoveProcess(Compressor,
+            new Vector3(Compressor.transform.position.x, Compressor.transform.position.y - 0.1f, 0), null));
+    }
+    IEnumerator MoveProcess(GameObject target, Vector3 position, Action finished)
+    {
+        yield return new WaitForSeconds(0.5f);
+        while (Vector3.Distance(target.transform.position, position) > 0.001f)
+        {
+            float step =  2f * Time.deltaTime;
+            target.transform.position = Vector3.MoveTowards(target.transform.position, position, step);
+            yield return null;
+        }
+        target.transform.position = position;
+        finished?.Invoke();
+        yield return null;
+    }
+    
     
 }

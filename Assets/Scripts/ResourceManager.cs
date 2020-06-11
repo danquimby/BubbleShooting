@@ -10,6 +10,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField] private List<Ball> bubbles;
     [SerializeField] private BallData[] ballData;
     [SerializeField] private GameObject basePrefab;
+    [SerializeField] private GameObject baseHitPrefab;
     
     public void Initialization()
     {

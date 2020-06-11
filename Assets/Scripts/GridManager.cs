@@ -11,19 +11,20 @@ public class GridManager : MonoBehaviour
     [SerializeField] private int rows;
     [SerializeField] private float BallStepX = -2;
     [SerializeField] private float offsetX = 0.2f;
-    [SerializeField] private Vector3 InitPosition;
+//    [SerializeField] private Vector3 compressor.transform.position;
     [SerializeField] private Ball[,] gridBall;
-
+    [Header("Fall down controller")]
+    public GameObject compressor;
+    
     public void Initialization()
     {
         gridBall = new Ball[columns, rows];
         LoadLevel("Assets/level1.data");
         Debug.Log("loaded");
     }
-
     public Vector3 Snap(Vector3 position)
     {
-        Vector3 objectOffset = position - InitPosition;
+        Vector3 objectOffset = position - compressor.transform.position;
         Vector3 objectSnap = new Vector3(
             Mathf.Round(objectOffset.x / BallStepX),
             Mathf.Round(objectOffset.y / BallStepX),
@@ -37,26 +38,45 @@ public class GridManager : MonoBehaviour
             else			
                 objectSnap.x -= BallStepX / 2;
         }
-        return InitPosition + objectSnap * BallStepX;
+        return compressor.transform.position + objectSnap * BallStepX;
     }
-    private void RecursiveSeek(Position position,int side, int BallId, ref bool[,] visited)
+
+    private void CalculationDrop()
     {
-        Ball ball = gridBall[position.Column, position.Row];
-        if (ball != null)
+        List<Ball> balls = new List<Ball>();
+        for (int c = 0; c < columns; c++)
         {
-                    
-            // if (ball.BallId == BallId)
-            // {
-            //     if (!visited[neighbor[0], neighbor[1]])
-            //     {
-            //         visited[neighbor[0], neighbor[1]] = true;
-            //         queue.Enqueue(neighbor);
-            //     }
-            // }
+            bool find = false;
+            balls.Clear();
+            for (int r = rows - 1; r >= 0; r--)
+            {
+                Ball ball = gridBall[c, r];
+                // find 1 object
+                if (ball != null && !find)
+                {
+                    find = true;
+                }
+                // sequence break
+                if (ball == null && find)
+                {
+                    DropBallGroup(balls);
+                    balls.Clear();
+                    find = false;
+                    continue;
+                }
+                balls.Add(ball);
+            }
         }
     }
 
-    private void Seek(int column, int row, int kind)
+    private void DropBallGroup(List<Ball> balls)
+    {
+        foreach (Ball ball in balls)
+        {
+            ball.Drop();
+        }
+    }
+    private bool Seek(int column, int row, int kind)
     {
         Debug.Log($"kind = " + kind);
         int[] pair = new int[2] { column, row };
@@ -79,6 +99,8 @@ public class GridManager : MonoBehaviour
         while (queue.Count != 0)
         {
             int[] top = queue.Dequeue();
+            if (!isPossible(top[0], top[1]))
+                continue;
             Ball gtop = gridBall[top[0], top[1]];
             if (gtop != null)
             {
@@ -94,30 +116,21 @@ public class GridManager : MonoBehaviour
                     neighbor[0] = top[0] + deltaxprime[i];
 				
                 neighbor[1] = top[1] + deltay[i];
-                if (neighbor[0] < 0 || neighbor[1] < 0)
-                {
-                    //Debug.Log($"neighbor 0 ={neighbor[0]} 1={neighbor[1]}");
-                    //Debug.LogError("negative ");
+                if (!isPossible(neighbor[0], neighbor[1]))
                     continue;
-                }
-                //Debug.Log($"neighbor 0 ={neighbor[0]} 1={neighbor[1]}");
-                try
+                Ball ball = gridBall[neighbor[0], neighbor[1]];
+                if (ball != null)
                 {
-                    Ball ball = gridBall[neighbor[0], neighbor[1]];
-                    if (ball != null)
+                
+                    if (ball.BallId == kind)
                     {
-                    
-                        if (ball.BallId == kind)
+                        if (!visited[neighbor[0], neighbor[1]])
                         {
-                            if (!visited[neighbor[0], neighbor[1]])
-                            {
-                                visited[neighbor[0], neighbor[1]] = true;
-                                queue.Enqueue(neighbor);
-                            }
+                            visited[neighbor[0], neighbor[1]] = true;
+                            queue.Enqueue(neighbor);
                         }
                     }
                 }
-                catch (System.IndexOutOfRangeException)	{}
                
             }
         }
@@ -128,15 +141,18 @@ public class GridManager : MonoBehaviour
                 Ball ball = objectQueue.Dequeue();
                 if (ball != null)
                 {
+                    if (!isPossible(ball.BallPosition.Column, ball.BallPosition.Row))
+                        continue;
                     gridBall[ball.BallPosition.Column, ball.BallPosition.Row] = null;
                     ball.Kill();
                 }
             }
-        }
-        // if win !
-        //CheckCeiling(0);
-    }
 
+            return true;
+        }
+
+        return false;
+    }
     public void AddBall(Ball ball)
     {
         Vector3 objectSnap = Snap(ball.transform.position);
@@ -145,46 +161,59 @@ public class GridManager : MonoBehaviour
         snappedPosition.z = -1;
 
         ball.BallPosition = GetPosition(snappedPosition);
-        ball.MoveTo(snappedPosition);
-        Debug.Log("ball.BallPosition " + ball.BallPosition);
-        gridBall[ball.BallPosition.Column, ball.BallPosition.Row] = ball;
-        Seek(ball.BallPosition.Column, ball.BallPosition.Row, ball.BallId);
-    }
+        ball.MoveTo(snappedPosition, -1, () =>
+        {
+            GameManager.instance.CompressorStart();
+        });
+        if (!isPossible(ball.BallPosition.Column, ball.BallPosition.Row))
+            return;
 
-    public void Create(Position position, int value)
+        if (gridBall[ball.BallPosition.Column, ball.BallPosition.Row] != null)
+        {
+            gridBall[ball.BallPosition.Column, ball.BallPosition.Row].Kill();
+        }
+        gridBall[ball.BallPosition.Column, ball.BallPosition.Row] = ball;
+        if (Seek(ball.BallPosition.Column, ball.BallPosition.Row, ball.BallId))
+            CalculationDrop();
+    }
+    private Ball create(Position position, int value)
     {
         Ball ball;
         ball = CloneBall(GetViewPosition(position), value);
         ball.isTrigger = true;
         ball.BallPosition = position;
+        if (!isPossible(ball.BallPosition.Column, ball.BallPosition.Row))
+            return null;
+
         gridBall[ball.BallPosition.Column, ball.BallPosition.Row] = ball;
+        return ball;
     }
 
     private Position GetPosition(Vector3 position)
     {
         int row;
-        if (position.y > InitPosition.y)
-            row = (int)Mathf.Round(( position.y - InitPosition.y) / BallStepX);
+        if (position.y > compressor.transform.position.y)
+            row = (int)Mathf.Round(( position.y - compressor.transform.position.y) / BallStepX);
         else
-            row = (int)Mathf.Round(( InitPosition.y - position.y) / BallStepX);
+            row = (int)Mathf.Round(( compressor.transform.position.y - position.y) / BallStepX);
         int column;
         if (row == 0)
-            column = (int)Mathf.Round((position.x - InitPosition.x ) / BallStepX);
+            column = (int)Mathf.Round((position.x - compressor.transform.position.x ) / BallStepX);
         else
-            column = (int)Mathf.Round((position.x - InitPosition.x ) / BallStepX - offsetX);
+            column = (int)Mathf.Round((position.x - compressor.transform.position.x ) / BallStepX - offsetX);
         return new Position(row, column);
     }
     
     private Vector3 GetViewPosition(Position position)
     {
         if (position.Row % 2 == 0)
-            return new Vector3(position.Column * BallStepX, (-position.Row) * BallStepX, -1) + InitPosition;
-        return new Vector3(position.Column * BallStepX + offsetX, (-position.Row) * BallStepX, -1) + InitPosition;
+            return new Vector3(position.Column * BallStepX, (-position.Row) * BallStepX, -1) + compressor.transform.position;
+        return new Vector3(position.Column * BallStepX + offsetX, (-position.Row) * BallStepX, -1) + compressor.transform.position;
     }
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(new Vector3(InitPosition.x+1.6f, InitPosition.y+0.25f, 0), new Vector3(5, .1f, 1));
+        Gizmos.DrawWireCube(new Vector3(compressor.transform.position.x + 1.5f, compressor.transform.position.y, 0), new Vector3(5, .1f, 1));
     }
 
     private void LoadLevel(string filename)
@@ -209,18 +238,23 @@ public class GridManager : MonoBehaviour
                     int value;
                     if (Int32.TryParse(data[count++].ToString(),out value ))
                     {
-                        Create(new Position(r, c),value);
+                        Ball ball = create(new Position(r, c), value);
+                        ball.drag = false;
                     }
                 }
             }
         }
     }
-    Ball CloneBall(Vector3 position, int Id)
+    private Ball CloneBall(Vector3 position, int Id)
     {
         Ball ball =  GameManager.instance.resourceManager.Get(Id);
         GameObject _object = GameObject.Instantiate(ball.gameObject, position, Quaternion.identity);
         _object.SetActive(true);
         _object.transform.SetParent(GameManager.instance.spawnFolder);
         return _object.CastToBall();
+    }
+    private bool isPossible(int _column, int _row)
+    {
+        return ((_column >= 0 && _column < this.columns) && (_row >= 0 && _row < this.rows));
     }
 }

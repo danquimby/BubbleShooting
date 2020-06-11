@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Events;
 
 public class Ball : MonoBehaviour
 {
@@ -12,12 +13,12 @@ public class Ball : MonoBehaviour
     public float speed = 10;
     public float moveSpeed = 2;
     public int BallId;
-    //TODO !!
-    private bool click = false;
+
+    private DragObject _dragObject;
 
     public bool isTrigger
     {
-        get { return _collider.isTrigger; }
+        get => _collider.isTrigger;
         set
         {
             if (_collider == null)
@@ -26,12 +27,22 @@ public class Ball : MonoBehaviour
         }
     }
 
+    public bool drag
+    {
+        set
+        {
+            if (_dragObject == null)
+                _dragObject = GetComponent<DragObject>();
+            _dragObject.enabled = value;
+            if (value)
+                _dragObject.SetEnable();
+        }
+        get => _dragObject.enabled;
+    }
+
     public bool Collider
     {
-        get
-        {
-            return _collider.enabled;
-        }
+        get => _collider.enabled;
         set
         {
             if (_collider == null)
@@ -41,13 +52,15 @@ public class Ball : MonoBehaviour
     }
 
     public TriggeredEvent onTriggeredEvent;
-
+    public Action onLaunched;
     void Start()
     {
         log = UnityLogProvider.get(this.GetType().Name);
         if (_collider == null)
             _collider = GetComponent<CircleCollider2D>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
+        _dragObject = GetComponent<DragObject>();
+        
         onTriggeredEvent.AddListener(GameManager.instance.OnTriggered);
 
     }
@@ -69,10 +82,15 @@ public class Ball : MonoBehaviour
         _rigidbody2D.velocity = Vector2.zero;
     }
 
-    public void Launching()
+    public void Drop()
+    {
+        Debug.Log("is ball drop");
+    }
+    public void Launching(float _speed = -1)
     {
         gameObject.tag = "hits";
-        _rigidbody2D.velocity = transform.up * speed;
+        _rigidbody2D.velocity = transform.up * (_speed == -1 ? speed : _speed);
+        onLaunched.Invoke();
     }
 
     public void MoveTo(Vector3 position, float speed = -1, Action finish = null)
@@ -103,15 +121,12 @@ public class Ball : MonoBehaviour
         finished?.Invoke();
         yield return null;
     }
-
     void OnTriggerEnter2D(Collider2D collider)
     {
         if (collider != null)
         {
             if (gameObject.tag == "hits" || gameObject.tag == "upper")
             {
-                // todo fast kick 
-                //Ball ball = collider.gameObject.CastToBall();
                 isTrigger = true;
                 Stop();
                 gameObject.tag = "bubble";
@@ -120,7 +135,6 @@ public class Ball : MonoBehaviour
             }
         }
     }
-
     public static Ball Clone(Vector3 position, int index = -1, Transform parent = null)
     {
         return GameManager.instance.resourceManager.Get(index).gameObject.CloneBall(position, parent);
