@@ -20,15 +20,15 @@ public class DragObject : MonoBehaviour
 
     public void SetEnable()
     {
-        DragBall = gameObject.CastToBall();
-        DragBall.transform.position = transform.position;
-        scanPos = transform.position;
-        Upper = new Vector2(scanPos.x - 0.5f, scanPos.y -0.5f);
-        Bottom = new Vector2(scanPos.x + 0.5f, scanPos.y);
-        _sensitivity = 40f;
-        DragBall = gameObject.CastToBall();
-        DragBall.transform.position = transform.position;
-        cursor.SetActive(true);
+        // DragBall = gameObject.CastToBall();
+        // DragBall.transform.position = transform.position;
+        // scanPos = transform.position;
+        // Upper = new Vector2(scanPos.x - 0.5f, scanPos.y -0.5f);
+        // Bottom = new Vector2(scanPos.x + 0.5f, scanPos.y);
+        // _sensitivity = 40f;
+        // DragBall = gameObject.CastToBall();
+        // DragBall.transform.position = transform.position;
+        // cursor.SetActive(true);
     }
    
 
@@ -66,7 +66,7 @@ public class DragObject : MonoBehaviour
         if (sppedBall > 0)
         {
             _isRotating = false;
-            DragBall.Launching(sppedBall*25);
+            //DragBall.Launching(sppedBall*25);
             GetComponent<DragObject>().enabled = false;
             cursor.SetActive(false);
         }

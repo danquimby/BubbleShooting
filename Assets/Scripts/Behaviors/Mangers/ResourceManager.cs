@@ -3,18 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class ResourceManager : MonoBehaviour
+public class ResourceManager : BaseBehavior
 {
     private Loggger log;
     [SerializeField] private Transform spawnBall;
     [SerializeField] private List<Ball> bubbles;
     [SerializeField] private BallData[] ballData;
     [SerializeField] private GameObject basePrefab;
-    [SerializeField] private GameObject baseHitPrefab;
     
-    public void Initialization()
+    public Ball Get(int index = -1)
     {
-        log = UnityLogProvider.get(this.GetType().Name);
+        Assert.IsTrue(bubbles.Count > 0, "resource manager is empty");
+        if (index >= 0 && index >= bubbles.Count) return null;
+        return index == -1 ? bubbles[Random.Range(0,bubbles.Count)] : bubbles[index];
+    }
+
+    protected override void Init()
+    {
+        /*        
+        log = LoggerProvider.get(this);
         bubbles = new List<Ball>();
         for (var index = 0; index < ballData.Length; index++)
         {
@@ -24,11 +31,6 @@ public class ResourceManager : MonoBehaviour
             ball.InitBall(data, index);
             bubbles.Add(ball);
         }
-    }
-    public Ball Get(int index = -1)
-    {
-        Assert.IsTrue(bubbles.Count > 0, "resource manager is empty");
-        if (index >= 0 && index >= bubbles.Count) return null;
-        return index == -1 ? bubbles[Random.Range(0,bubbles.Count)] : bubbles[index];
+        */
     }
 }

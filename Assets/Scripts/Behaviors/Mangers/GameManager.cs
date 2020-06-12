@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-public sealed class GameManager : MonoBehaviour
+public sealed class GameManager : BaseBehavior
 {
     public Transform spawnFolder;
     public enum GameStateType
@@ -11,31 +11,36 @@ public sealed class GameManager : MonoBehaviour
     }
     public static GameManager instance = null;
     public ResourceManager resourceManager;
-    public GridManager gridManager;
+    //public GridManager gridManager;
     public Launcher launcher;
     public GameObject Compressor;
-    
-    void Start () {
+    public GridManager gridManager;
+    protected override void Start () {
         if (instance == null) {
             instance = this; 
         } else if(instance == this){
             Destroy(gameObject); 
         }
         DontDestroyOnLoad(gameObject);
-        InitializeManager();
+        base.Start();
     }
-    private void InitializeManager()
+
+    protected override void Init()
     {
+        base.Init();
+        //PoolManager.Spawn()
         resourceManager = GetComponent<ResourceManager>();
-        gridManager = GetComponent<GridManager>();
-        resourceManager.Initialization();
-        gridManager.Initialization();
-        launcher.Initialization();
+        if (gridManager == null)
+            gridManager = GetComponent<GridManager>();
+        gridManager.LoadLevel("Assets/level1.data");
+        
+      //  gridManager = GetComponent<GridManager>();
     }
+
 
     public void OnTriggered(Ball ball)
     {
-        gridManager.AddBall(ball);
+        //gridManager.AddBall(ball);
         ball.transform.SetParent(spawnFolder);
         //launcher.Reload();
     }

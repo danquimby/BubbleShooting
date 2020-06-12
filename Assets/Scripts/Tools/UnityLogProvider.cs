@@ -44,10 +44,10 @@ public class Loggger
     }
 }
 
-public static class UnityLogProvider
+public static class LoggerProvider
 {
-    public static Loggger get(string tag)
+    public static Loggger get(MonoBehaviour mono)
     {
-        return new Loggger(tag);
+        return new Loggger(mono.GetType().Name);
     }
 }

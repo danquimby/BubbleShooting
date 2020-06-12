@@ -4,7 +4,60 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class GridManager : MonoBehaviour
+public class GridManager : BaseBehavior
+{
+    [SerializeField] private GameObject prefabBall;
+    [SerializeField] private int columns;
+    [SerializeField] private int rows;
+    [SerializeField] private Ball[,] gridBall;
+    [SerializeField] private Transform rootSpawn;
+    protected override void Init()
+    {
+        base.Init();
+        gridBall = new Ball[columns, rows];
+    }
+
+    public void LoadLevel(string filename)
+    {
+        using (StreamReader streamReader = new StreamReader(filename))
+        {
+            int value;
+            int count = 0;
+            string data = streamReader.ReadToEnd();
+            for (int c = 0; c < columns; c++)
+            {
+                for (int r = 0; r < rows; r++)
+                {
+                    if (count >= data.Length) break;
+                    
+                    bool next_line = false;
+                    while (data[count] == '\r' || data[count] == '\n')
+                    {
+                        count++;
+                        next_line = true;
+                    }
+                    if (next_line) break;
+                    if (Int32.TryParse(data[count++].ToString(),out value ))
+                    {
+                        var position = new Position(r, c);
+                        GameObject obj = PoolManager.Spawn(prefabBall, Converter.ToViewPosition(position),transform.rotation);
+                        obj.toBall().InitBall(value);
+                        obj.transform.SetParent(rootSpawn);
+                    }
+                }
+            }
+        }
+    }
+    #region Tools
+    private bool isPossible(int _column, int _row)
+    {
+        return ((_column >= 0 && _column < this.columns) && (_row >= 0 && _row < this.rows));
+    }
+    #endregion
+
+}
+#if old
+public class GridManager : BaseBehavior
 {
     [Header("Grid")]
     [SerializeField] private int columns;
@@ -16,12 +69,13 @@ public class GridManager : MonoBehaviour
     [Header("Fall down controller")]
     public GameObject compressor;
     
-    public void Initialization()
+    protected override void Init()
     {
         gridBall = new Ball[columns, rows];
         LoadLevel("Assets/level1.data");
         Debug.Log("loaded");
     }
+
     public Vector3 Snap(Vector3 position)
     {
         Vector3 objectOffset = position - compressor.transform.position;
@@ -257,4 +311,6 @@ public class GridManager : MonoBehaviour
     {
         return ((_column >= 0 && _column < this.columns) && (_row >= 0 && _row < this.rows));
     }
+
 }
+#endif

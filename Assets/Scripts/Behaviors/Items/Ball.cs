@@ -1,8 +1,44 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Events;
+
+public class Ball : BaseItem
+{
+    [SerializeField] private BallData _ballData;
+    public Position position = new Position();
+    protected override void Init()
+    {
+        base.Init();
+        isControl = true;
+        onUpdate += UpdateEvent;
+        onMouseDown += i =>
+        {
+            var toMove = Converter.ToViewPosition(position);
+            toMove.y = -6;
+            MoveTo(toMove,10, () =>
+            {
+                log.i("!!! ");
+            });
+        };
+        SpriteRenderer.sprite = _ballData.image;
+    }
+
+    public void InitBall(int idBall)
+    {
+        position = Converter.ToGridPosition(transform.position);
+        BallData data = Resources.Load<BallData>("Balls_data/ball"+idBall);
+        //Assert.IsNull(data, "data for prefabs not fond plz check");
+        _ballData = data;
+    }
+    void UpdateEvent()
+    {
+    }
+
+    public void Drop()
+    {
+        
+    }
+}
+/*
 
 public class Ball : MonoBehaviour
 {
@@ -55,7 +91,7 @@ public class Ball : MonoBehaviour
     public Action onLaunched;
     void Start()
     {
-        log = UnityLogProvider.get(this.GetType().Name);
+        log = LoggerProvider.get(this);
         if (_collider == null)
             _collider = GetComponent<CircleCollider2D>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
@@ -158,3 +194,4 @@ public static class MyExtensions
         return _object.GetComponent<Ball>();
     }
 }
+*/
