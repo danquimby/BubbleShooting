@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class BaseItem : BaseBehavior
 {
@@ -15,6 +17,9 @@ public class BaseItem : BaseBehavior
     protected Action onUpdate;
     #endregion
 
+    // TODO I don't like it 
+    public bool IsBindingRoot;
+    
     [SerializeField] protected float moveSpeed;
     private bool pressed;
     public bool isControl;
@@ -129,4 +134,5 @@ public class BaseItem : BaseBehavior
         return hit.collider != null && hit.collider.gameObject.name == gameObject.name;
     }
     #endregion
+
 }

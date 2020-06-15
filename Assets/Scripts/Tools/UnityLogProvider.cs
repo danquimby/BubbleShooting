@@ -50,4 +50,9 @@ public static class LoggerProvider
     {
         return new Loggger(mono.GetType().Name);
     }
+
+    public static Loggger get(string name)
+    {
+        return new Loggger(name);
+    }
 }

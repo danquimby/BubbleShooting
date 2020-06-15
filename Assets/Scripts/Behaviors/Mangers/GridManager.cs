@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class GridManager : BaseBehavior
 {
@@ -11,10 +12,17 @@ public class GridManager : BaseBehavior
     [SerializeField] private int rows;
     [SerializeField] private Ball[,] gridBall;
     [SerializeField] private Transform rootSpawn;
+    private int[] DeltaNeighbors = // x,y
+    {
+        -1,0,  0,-1, 1,0, 0,1, //square
+        -1,-1, 1,-1, 1,1, -1,1 //diagonals
+    };
     protected override void Init()
     {
-        base.Init();
         gridBall = new Ball[columns, rows];
+        base.Init();
+        //TODO till remove
+        LoadLevel("Assets/level1.data");
     }
 
     public void LoadLevel(string filename)
@@ -41,17 +49,125 @@ public class GridManager : BaseBehavior
                     {
                         var position = new Position(r, c);
                         GameObject obj = PoolManager.Spawn(prefabBall, Converter.ToViewPosition(position),transform.rotation);
-                        obj.toBall().InitBall(value);
+                        Ball ball = obj.toBall();
+                        ball.InitBall(value);
+                        ball.IsBindingRoot = c == 0; // TODO to think... till set root property 
                         obj.transform.SetParent(rootSpawn);
+                        gridBall[c, r] = ball;
                     }
                 }
             }
         }
+
+        SetBinging();
+        CheckWithoutBinding();
     }
     #region Tools
     private bool isPossible(int _column, int _row)
     {
         return ((_column >= 0 && _column < this.columns) && (_row >= 0 && _row < this.rows));
+    }
+
+    private void SetBinging()
+    {
+        for (int c = 0; c < columns; c++)
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                if (isPossible(c, r))
+                {
+                    Ball ball = gridBall[c, r];
+                    if (ball != null)
+                    {
+                        List<Ball> neighborNeighbors = FindNeighbors(ball);
+                        log.i($"ball bind {ball.position} child {neighborNeighbors.Count}");
+                        Binding.AddBindings(ball, neighborNeighbors);
+                    }
+                }
+            }
+        }
+    }
+    private List<Ball> FindNeighbors(Ball ball)
+    {
+        Assert.IsNotNull(ball, "Object ball is null !");
+        
+        List<Ball> neighbors = new List<Ball>();
+        for (int i = 0; i < DeltaNeighbors.Length/2; i++)
+        {
+            int r = DeltaNeighbors[i * 2] + ball.position.Row;
+            int c = DeltaNeighbors[i * 2 + 1] + ball.position.Column;
+            if (ball.position.EqualPoints(c,r)) continue; // check self. Possible if column equals 0
+            if (isPossible(c, r))
+            {
+                Ball b = gridBall[c, r];
+                if (b != null)
+                    neighbors.Add(gridBall[c, r]);
+            }
+        }
+        // log.i($"Binding pos={ball.position} len = {neighbors.Count}");
+        // foreach (Ball neighbor in neighbors)
+        // {
+        //     log.i("neighbor " + neighbor.position);
+        // }
+        return neighbors;
+    }
+
+    private void CheckWithoutBinding()
+    {
+        for (int c = 1; c < columns; c++)
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                Ball ball = gridBall[c, r];
+                if (ball != null)
+                {
+                    log.i($"check pos={ball.position}");
+                    List<Ball> result = new List<Ball>();
+                    if (!CheckBranch(ball, result))
+                    {
+                        HashSet<Ball> res1 = new HashSet<Ball>(result);
+                        foreach (Ball foundBall in res1)
+                        {
+                            log.e("Find !! " + foundBall.position);
+                            //ball.Drop();
+                            gridBall[foundBall.position.Column, foundBall.position.Row] = null;
+                            //Binding.RemoveAllBindingsFromObject(foundBall);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    private static int countW = 0;
+    private bool CheckBranch(Ball ball, List<Ball> result)
+    {
+        if (ball.IsBindingRoot)
+        {
+            log.i("end it is root ");
+            return true;
+        }
+        if (countW++ > 30)
+        {
+            log.e("err");
+            return true;
+        }
+        result.Add(ball);
+        List<Ball> balls = Binding.GetBindingItems(ball);
+        foreach (Ball bindingBall in balls)
+        {
+            log.i($"check ball ={ball} bindingBall={bindingBall}");
+
+            // if binding object removed
+            if (bindingBall == null)
+            {
+                Binding.RemoveBing(ball, bindingBall);
+                continue;
+            }
+            if (CheckBranch(bindingBall, result))
+                return true;
+        }
+        return false;
     }
     #endregion
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 public class Ball : BaseItem
@@ -22,6 +23,10 @@ public class Ball : BaseItem
         SpriteRenderer.sprite = _ballData.image;
     }
 
+    public int GetBallId()
+    {
+        return _ballData != null ? _ballData.iId : -Int32.MaxValue;
+    }
     public void InitBall(int idBall)
     {
         position = Converter.ToGridPosition(transform.position);
@@ -35,7 +40,17 @@ public class Ball : BaseItem
 
     public void Drop()
     {
-        
+        var toMove = Converter.ToViewPosition(position);
+        toMove.y = -6;
+        MoveTo(toMove,10, () =>
+        {
+            log.i("!!! ");
+        });
+    }
+
+    public override string ToString()
+    {
+        return position.ToString();
     }
 }
 /*

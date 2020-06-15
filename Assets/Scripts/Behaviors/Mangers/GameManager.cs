@@ -27,14 +27,14 @@ public sealed class GameManager : BaseBehavior
 
     protected override void Init()
     {
-        base.Init();
         //PoolManager.Spawn()
         resourceManager = GetComponent<ResourceManager>();
         if (gridManager == null)
             gridManager = GetComponent<GridManager>();
-        gridManager.LoadLevel("Assets/level1.data");
-        
+        //gridManager.LoadLevel("Assets/level1.data");
       //  gridManager = GetComponent<GridManager>();
+      base.Init();
+
     }
 
 

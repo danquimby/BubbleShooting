@@ -37,6 +37,11 @@ public class Position
     {
         this.column = this.row = 0;
     }
+
+    public bool EqualPoints(int c, int r)
+    {
+        return !isEmpty() && column == c && row == r;
+    }
     public override bool Equals(object obj)
     {
         if (!isEmpty() && obj != null && obj is Position)
