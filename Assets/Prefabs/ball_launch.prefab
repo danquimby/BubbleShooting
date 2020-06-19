@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 267697662677282323}
   - component: {fileID: 267697662677282322}
-  - component: {fileID: 267697662677282320}
   - component: {fileID: 267697662677282327}
   - component: {fileID: 267697662677282540}
   - component: {fileID: 8760572341598265931}
@@ -50,6 +49,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -61,6 +61,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -84,27 +85,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &267697662677282320
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 267697662677282326}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8ba89cf40b84c948a9dd1ac0fafeeff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BallPosition:
-    column: 0
-    row: 0
-  speed: 10
-  moveSpeed: 2
-  BallId: 0
-  onTriggeredEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!50 &267697662677282327
 Rigidbody2D:
   serializedVersion: 4
@@ -138,8 +118,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95493ce945df10e48ba5d2bcb1babbb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsBindingRoot: 0
+  moveSpeed: 2
+  isControl: 0
+  _ballData: {fileID: 0}
+  position:
+    column: 2147483647
+    row: 2147483647
   cursor: {fileID: 267697663475793242}
-  DragBall: {fileID: 0}
 --- !u!58 &8760572341598265931
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -201,6 +187,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -212,6 +199,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0

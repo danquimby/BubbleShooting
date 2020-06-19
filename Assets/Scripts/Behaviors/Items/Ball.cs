@@ -10,7 +10,6 @@ public class Ball : BaseItem
     {
         base.Init();
         isControl = true;
-        onUpdate += UpdateEvent;
         onMouseDown += i =>
         {
             var toMove = Converter.ToViewPosition(position);
@@ -31,13 +30,9 @@ public class Ball : BaseItem
     {
         position = Converter.ToGridPosition(transform.position);
         BallData data = Resources.Load<BallData>("Balls_data/ball"+idBall);
-        //Assert.IsNull(data, "data for prefabs not fond plz check");
+        Assert.IsNotNull(data, "data for prefabs not fond plz check");
         _ballData = data;
     }
-    void UpdateEvent()
-    {
-    }
-
     public void Drop()
     {
         var toMove = Converter.ToViewPosition(position);
@@ -47,7 +42,6 @@ public class Ball : BaseItem
             
         });
     }
-
     public override string ToString()
     {
         return position.ToString();

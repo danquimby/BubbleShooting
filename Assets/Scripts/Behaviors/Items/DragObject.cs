@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class DragObject : MonoBehaviour
+public class DragObject : Ball
 {
     private Vector3 screenPoint;
     private Vector3 offset;
@@ -15,7 +15,6 @@ public class DragObject : MonoBehaviour
     private Vector2 Upper, Bottom;
     [SerializeField] private GameObject cursor;
     
-    [SerializeField] private Ball DragBall;
     private float sppedBall = 0;
 
     public void SetEnable()
@@ -36,7 +35,7 @@ public class DragObject : MonoBehaviour
     {
         if(_isRotating)
         {
-            DragBall.transform.Rotate(new Vector3(0,0, (transform.position - _mouseReference).x * _sensitivity));
+            transform.Rotate(new Vector3(0,0, (transform.position - _mouseReference).x * _sensitivity));
             _mouseReference = transform.position;
         }
     }

@@ -60,10 +60,25 @@ public class GridManager : BaseBehavior
             }
         }
 
-        Seek(gridBall[0, 1]);
+       
         //CheckGridToExcessBalls();
     }
-
+    // TODO delete before 
+    public void Foo()
+    {
+        List<Ball> excessBalls = Seek(gridBall[0, 1]);
+        if (excessBalls.Count >= 3)
+        {
+            foreach (Ball ball in excessBalls)
+            {
+                gridBall[ball.position.Column, ball.position.Row] = null;
+                Destroy(ball.gameObject);
+                GameObject o = GameManager.instance.resourceManager.SpawnExplosionObject();
+                o.transform.position = ball.transform.position;
+            }
+            excessBalls.Clear();
+        }
+    }
     void CheckGridToExcessBalls()
     {
         bool [,] arr = new bool[columns,rows];
@@ -144,7 +159,6 @@ public class GridManager : BaseBehavior
     bool CheckGridToExcessBallsRecursive(Ball ball, ref bool[,] check)
     {
         bool result = ball.IsBindingRoot;
-//        log.i("Шарик у нас IsBindingRoot " + result);
         check[ball.position.Column, ball.position.Row] = true;
         
         for (int i = 0; i < DeltaNeighbors.Length / 2; i++)

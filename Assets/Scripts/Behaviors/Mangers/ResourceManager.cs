@@ -10,12 +10,11 @@ public class ResourceManager : BaseBehavior
     [SerializeField] private List<Ball> bubbles;
     [SerializeField] private BallData[] ballData;
     [SerializeField] private GameObject basePrefab;
-    
-    public Ball Get(int index = -1)
+    [SerializeField] private GameObject ExplosionPrefab;
+
+    public GameObject SpawnExplosionObject()
     {
-        Assert.IsTrue(bubbles.Count > 0, "resource manager is empty");
-        if (index >= 0 && index >= bubbles.Count) return null;
-        return index == -1 ? bubbles[Random.Range(0,bubbles.Count)] : bubbles[index];
+        return Instantiate(ExplosionPrefab, Vector3.zero, Quaternion.identity);
     }
 
     protected override void Init()

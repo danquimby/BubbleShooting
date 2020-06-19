@@ -55,7 +55,6 @@ public static class PoolManager
             pools[prefab] = new Pool(prefab, qty);
         }
     }
-
     static public void Preload(GameObject prefab, int qty = 1) {
         Init(prefab, qty);
 	

@@ -25,6 +25,10 @@ public sealed class GameManager : BaseBehavior
         base.Start();
     }
 
+    public void Foo()
+    {
+        gridManager.Foo();
+    }
     protected override void Init()
     {
         //PoolManager.Spawn()
