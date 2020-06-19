@@ -42,9 +42,9 @@ public class Ball : BaseItem
     {
         var toMove = Converter.ToViewPosition(position);
         toMove.y = -6;
-        MoveTo(toMove,10, () =>
+        MoveTo(toMove,1, () =>
         {
-            log.i("!!! ");
+            
         });
     }
 

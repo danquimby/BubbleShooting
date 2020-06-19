@@ -67,11 +67,11 @@ public static class Binding
             // check duplicate binding
             foreach (Ball _b in GetBindingItems(bind))
             {
-                if (Equals(_b.position, ball.position))
-                {
-//                    log.i($"not bind equalt {_b.position} == {ball.position}");
-                    return;
-                }
+//                 if (Equals(_b.position, ball.position))
+//                 {
+// //                    log.i($"not bind equalt {_b.position} == {ball.position}");
+//                     return;
+//                 }
             }
             AddBing(ball, bind);
         }

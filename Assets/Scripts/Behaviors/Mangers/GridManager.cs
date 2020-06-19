@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -58,31 +59,99 @@ public class GridManager : BaseBehavior
                 }
             }
         }
+        foo();
+        // SetBinging();
+        // CheckWithoutBinding();
+    }
 
-        SetBinging();
-        CheckWithoutBinding();
+    void foo()
+    {
+        bool [,] arr = new bool[columns,rows];
+        for (var i = 0; i < columns; i++)
+            for (int i1 = 0; i1 < rows; i1++)  
+                arr[i, i1] = false;
+        
+        for (int c = columns-1; c >= 0; c--)
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                Ball ball = gridBall[c, r];
+                if (ball != null && !arr[c,r])
+                {
+                    bool [,] arrResult = new bool[columns,rows];
+
+                    log.e("Заходим " + ball.position);
+                    if (foo_r(ball, ref arrResult))
+                    {
+                        FillArray(ref arr, ref arrResult);
+                        log.e("нашли рута");
+                    }
+                    else
+                    {
+                        MassDropped(ref arrResult);
+                        log.e("не нашли рута");
+                    }
+                }
+
+            }
+        }
+    }
+
+    private void MassDropped(ref bool[,] arrResult)
+    {
+        for (int c = 0; c < arrResult.GetLength(0); c++)
+        {
+            for (int r = 0; r < arrResult.GetLength(1); r++)
+            {
+                if (arrResult[c, r])
+                {
+                    gridBall[c, r].Drop();
+                }
+            }
+        }
+
+    }
+    bool foo_r(Ball ball, ref bool[,] check)
+    {
+        bool result = ball.IsBindingRoot;
+//        log.i("Шарик у нас IsBindingRoot " + result);
+        check[ball.position.Column, ball.position.Row] = true;
+        
+        for (int i = 0; i < DeltaNeighbors.Length / 2; i++)
+        {
+            int r = DeltaNeighbors[i * 2] + ball.position.Row;
+            int c = DeltaNeighbors[i * 2 + 1] + ball.position.Column;
+            
+            if (!isPossible(c,r)) continue;
+            
+            Ball newBall = gridBall[c, r];
+            if (newBall != null && !check[c, r])
+            {
+                log.i("Нашли шарик");
+                bool newResult = foo_r(newBall, ref check);
+                if (!result && newResult)
+                {
+                    result = true;
+                }
+            }
+        }
+        return result;
     }
     #region Tools
     private bool isPossible(int _column, int _row)
     {
         return ((_column >= 0 && _column < this.columns) && (_row >= 0 && _row < this.rows));
     }
-
-    private void SetBinging()
+    private void FillArray(ref bool[,] dest, ref bool[,] src)
     {
-        for (int c = 0; c < columns; c++)
+        for (int c = 0; c < dest.GetLength(0); c++)
         {
-            for (int r = 0; r < rows; r++)
+            for (int r = 0; r < dest.GetLength(1); r++)
             {
-                if (isPossible(c, r))
+                if (src[c, r])
                 {
-                    Ball ball = gridBall[c, r];
-                    if (ball != null)
-                    {
-                        List<Ball> neighborNeighbors = FindNeighbors(ball);
-                        log.i($"ball bind {ball.position} child {neighborNeighbors.Count}");
-                        Binding.AddBindings(ball, neighborNeighbors);
-                    }
+                    dest[c, r] = true;
+                    log.i($" записываем c={c} r={r} ");
                 }
             }
         }
@@ -114,27 +183,27 @@ public class GridManager : BaseBehavior
 
     private void CheckWithoutBinding()
     {
-        for (int c = 1; c < columns; c++)
+        for (int r = 0; r < rows; r++)
         {
-            for (int r = 0; r < rows; r++)
+            Ball ball = gridBall[0, r];
+            if (ball != null)
             {
-                Ball ball = gridBall[c, r];
-                if (ball != null)
+                log.i($"root pos={ball}");
+                List<Ball> result = new List<Ball>();
+                CheckBranch(ball, result);
+                /*
+                if (!CheckBranch(ball, result))
                 {
-                    log.i($"check pos={ball.position}");
-                    List<Ball> result = new List<Ball>();
-                    if (!CheckBranch(ball, result))
+                    HashSet<Ball> res1 = new HashSet<Ball>(result);
+                    foreach (Ball foundBall in res1)
                     {
-                        HashSet<Ball> res1 = new HashSet<Ball>(result);
-                        foreach (Ball foundBall in res1)
-                        {
-                            log.e("Find !! " + foundBall.position);
-                            //ball.Drop();
-                            gridBall[foundBall.position.Column, foundBall.position.Row] = null;
-                            //Binding.RemoveAllBindingsFromObject(foundBall);
-                        }
+                        log.e("Find !! " + foundBall.position);
+                        //ball.Drop();
+                        gridBall[foundBall.position.Column, foundBall.position.Row] = null;
+                        //Binding.RemoveAllBindingsFromObject(foundBall);
                     }
                 }
+                */
             }
         }
 
@@ -142,22 +211,16 @@ public class GridManager : BaseBehavior
     private static int countW = 0;
     private bool CheckBranch(Ball ball, List<Ball> result)
     {
-        if (ball.IsBindingRoot)
-        {
-            log.i("end it is root ");
-            return true;
-        }
         if (countW++ > 30)
         {
             log.e("err");
             return true;
         }
+        log.e("add result  " + ball);
         result.Add(ball);
         List<Ball> balls = Binding.GetBindingItems(ball);
         foreach (Ball bindingBall in balls)
         {
-            log.i($"check ball ={ball} bindingBall={bindingBall}");
-
             // if binding object removed
             if (bindingBall == null)
             {
